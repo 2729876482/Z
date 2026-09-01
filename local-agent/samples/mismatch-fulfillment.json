@@ -1,0 +1,53 @@
+{
+  "orderId": "LS-PO-2404",
+  "plant": "龙山厂",
+  "supplierName": "龙山粉煤灰供应商",
+  "materialName": "II级粉煤灰",
+  "materialCategory": "粉煤灰",
+  "projectName": "龙山1号线技改",
+  "batchNo": "LS-FLY-2404",
+  "productionTime": "2026-07-08 14:00:00",
+  "status": "处理中",
+  "rootCauseCategory": "payment_mismatch",
+  "contract": {
+    "contractNo": "HT-LS-2026-004",
+    "agreedDeliveryDate": "2026-06-20",
+    "agreedQuantity": 100.0,
+    "qualityStandard": "GB/T1596-2017 用于水泥和混凝土的粉煤灰",
+    "unitPrice": 180.0,
+    "contractAmount": 18000.0,
+    "penaltyClause": "延误每日扣0.5%；质量不合格扣5-20%",
+    "paymentTerms": "到货验收合格后30天账期付款"
+  },
+  "logistics": {
+    "carrier": "龙山自有车队",
+    "gpsStatus": "在线",
+    "plannedArrival": "2026-06-20 11:00",
+    "actualArrival": "2026-06-20 12:10",
+    "delayDays": 0,
+    "logisticsStatus": "已签收"
+  },
+  "inspection": {
+    "receivedWeight": 99.8,
+    "inboundNo": "RK-LS-2404",
+    "inspectionResult": "合格",
+    "qualityScore": 88.0,
+    "penaltySlip": "",
+    "deviationPct": -0.2
+  },
+  "invoice": {
+    "invoiceNo": "FP-LS-2404",
+    "invoiceAmount": 19800.0,
+    "taxRate": 0.13,
+    "paymentRequestAmount": 19800.0,
+    "actualPaymentAmount": null,
+    "paymentStatus": "待复核"
+  },
+  "supplier": {
+    "qualification": "B级资质",
+    "capacity": "日产500吨",
+    "historyScore": 71.0,
+    "riskRating": "中",
+    "frameworkPaymentDays": 30
+  }
+}

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>履约结算Agent · 后台日志控制台</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰</text></svg>" />
+  <style>
+    :root {
+      --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #c9d1d9;
+      --text-muted: #8b949e; --green: #3fb950; --red: #f85149; --yellow: #d29922;
+      --blue: #58a6ff; --cyan: #39d2c0; --orange: #f0883e; --violet: #bc8cff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: "SF Mono", Monaco, Consolas, "PingFang SC", monospace; font-size: 12px; height: 100vh; overflow: hidden; }
+    .app { display: flex; flex-direction: column; height: 100vh; }
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+    .title { font-weight: 600; font-size: 14px; color: var(--cyan); }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .btn { padding: 5px 12px; background: var(--border); color: var(--text); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+    .btn:hover { background: #3d444d; }
+    .btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* 后端不可达提示条（暗色） */
+    .backend-warn { display: none; background: #2d1517; border-bottom: 1px solid var(--red); padding: 8px 16px; font-size: 12px; color: var(--red); text-align: center; flex-shrink: 0; }
+    .backend-warn.show { display: block; }
+    .backend-warn code { background: #3a1d1f; padding: 1px 5px; border-radius: 3px; }
+
+    .main { flex: 1; display: grid; grid-template-rows: 1fr 220px; gap: 1px; background: var(--border); overflow: hidden; }
+    .console-panel { background: var(--bg); overflow-y: auto; padding: 8px 12px; }
+    .rules-panel { background: var(--panel); overflow-y: auto; padding: 10px 14px; }
+    .log-line { padding: 3px 0; border-bottom: 1px dashed #21262d; display: flex; gap: 10px; align-items: flex-start; }
+    .log-line:hover { background: #161b22; }
+    .log-time { color: var(--text-muted); font-size: 11px; white-space: nowrap; }
+    .log-stage { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; min-width: 70px; text-align: center; }
+    .log-stage.REQUEST { background: #1f6feb33; color: var(--blue); }
+    .log-stage.DB { background: #3fb95033; color: var(--green); }
+    .log-stage.DB-FALLBACK { background: #d2992233; color: var(--yellow); }
+    .log-stage.GLM { background: #bc8cff33; color: var(--violet); }
+    .log-stage.GLM-FALLBACK { background: #d2992233; color: var(--yellow); }
+    .log-stage.AGENT { background: #58a6ff33; color: var(--blue); }
+    .log-stage.NODE { background: #39d2c033; color: var(--cyan); }
+    .log-stage.OUTPUT { background: #3fb95033; color: var(--green); }
+    .log-stage.LEDGER { background: #3fb95033; color: var(--green); }
+    .log-stage.LEDGER-ERROR { background: #f8514933; color: var(--red); }
+    .log-stage.HITL { background: #f0883e33; color: var(--orange); }
+    .log-stage.BOOT { background: #8b949e33; color: var(--text-muted); }
+    .log-msg { flex: 1; word-break: break-all; }
+    .panel-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .rules-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .rules-table th, .rules-table td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+    .rules-table th { color: var(--text-muted); font-weight: 600; background: var(--bg); }
+    .rules-table tr:hover { background: var(--bg); }
+    .cat-tag { padding: 1px 6px; border-radius: 3px; font-size: 10px; }
+    .cat-tag.logistics_timeout { background: #f0883e33; color: var(--orange); }
+    .cat-tag.quality_tolerance { background: #58a6ff33; color: var(--blue); }
+    .cat-tag.penalty { background: #f8514933; color: var(--red); }
+    .cat-tag.three_way_match { background: #bc8cff33; color: var(--violet); }
+    .auto-scroll { color: var(--cyan); font-size: 10px; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="status-dot"></div>
+      <div class="title">履约结算Agent 后台日志控制台</div>
+    </div>
+    <div class="toolbar">
+      <span style="color:var(--text-muted);font-size:11px;" id="eventCount">0 条日志</span>
+      <label class="auto-scroll"><input type="checkbox" id="autoScroll" checked> 自动滚动</label>
+      <button class="btn" id="clearBtn">清空</button>
+      <button class="btn" id="refreshBtn">⟳ 刷新</button>
+      <a class="btn" href="/" target="_blank">⬅ 返回驾驶舱</a>
+    </div>
+  </div>
+
+  <!-- 后端不可达提示条 -->
+  <div class="backend-warn" id="backendWarn">⚠ 后端服务不可达，日志/规则加载失败。请先运行 <code>node server.mjs</code> 后点击“刷新”。</div>
+
+  <div class="main">
+    <div class="console-panel" id="consolePanel">
+      <div style="color:var(--text-muted);padding:20px;text-align:center;">等待日志... 在驾驶舱点击“运行Agent”按钮触发链路</div>
+    </div>
+
+    <div class="rules-panel">
+      <div class="panel-title">
+        <span>结算规则表（settlement_rules）</span>
+        <span id="rulesCount" style="color:var(--text-muted);">加载中</span>
+      </div>
+      <table class="rules-table" id="rulesTable">
+        <thead><tr><th>规则编码</th><th>类别</th><th>标签</th><th>阈值</th><th>单位</th><th>说明</th></tr></thead>
+        <tbody><tr><td colspan="6" style="color:var(--text-muted);text-align:center;">加载中...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let autoScroll = true;
+let pollTimer = null;
+document.getElementById("autoScroll").addEventListener("change", e => autoScroll = e.target.checked);
+document.getElementById("clearBtn").addEventListener("click", () => {
+  document.getElementById("consolePanel").innerHTML = "";
+});
+document.getElementById("refreshBtn").addEventListener("click", () => { loadEvents(); loadRules(); });
+
+// 带 AbortController 超时的 fetch
+function fetchWithTimeout(url, opts = {}, ms = 8000) {
+  if (typeof AbortController === "undefined") return fetch(url, opts);
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  return fetch(url, { ...opts, signal: ctl.signal }).finally(() => clearTimeout(timer));
+}
+
+function showWarn(show) {
+  document.getElementById("backendWarn").classList.toggle("show", show);
+}
+
+function renderEvents(events) {
+  const panel = document.getElementById("consolePanel");
+  if (events.length === 0) {
+    panel.innerHTML = `<div style="color:var(--text-muted);padding:20px;text-align:center;">暂无日志</div>`;
+  } else {
+    panel.innerHTML = events.map(e => `
+      <div class="log-line">
+        <span class="log-time">${new Date(e.at).toLocaleTimeString("zh-CN", { hour12: false })}</span>
+        <span class="log-stage ${e.stage}">${escapeHtml(e.stage)}</span>
+        <span class="log-msg">${escapeHtml(e.message)}</span>
+      </div>
+    `).join("");
+  }
+  document.getElementById("eventCount").textContent = `${events.length} 条日志`;
+  if (autoScroll) panel.scrollTop = panel.scrollHeight;
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function loadEvents() {
+  try {
+    const r = await fetchWithTimeout("/api/events-log");
+    const d = await r.json();
+    renderEvents(d.events || []);
+    showWarn(false);
+  } catch (e) {
+    // 原版仅 console.error 静默吞错，后端没起时页面一片空白；这里改为 UI 提示
+    showWarn(true);
+    document.getElementById("eventCount").textContent = "日志拉取失败";
+  }
+}
+
+async function loadRules() {
+  try {
+    const r = await fetchWithTimeout("/api/db/rules");
+    const d = await r.json();
+    const rules = d.rules || [];
+    document.getElementById("rulesCount").textContent = `共 ${rules.length} 条`;
+    const tbody = document.querySelector("#rulesTable tbody");
+    if (rules.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted);text-align:center;">暂无规则</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rules.map(r => `
+      <tr>
+        <td>${escapeHtml(r.ruleCode)}</td>
+        <td><span class="cat-tag ${r.ruleCategory}">${escapeHtml(r.ruleCategory)}</span></td>
+        <td>${escapeHtml(r.label)}</td>
+        <td style="color:var(--yellow);">${escapeHtml(String(r.thresholdValue))}</td>
+        <td>${escapeHtml(r.thresholdUnit)}</td>
+        <td style="color:var(--text-muted);">${escapeHtml(r.description)}</td>
+      </tr>
+    `).join("");
+  } catch (e) {
+    document.querySelector("#rulesTable tbody").innerHTML = `<tr><td colspan="6" style="color:var(--red);text-align:center;">规则加载失败：后端不可达</td></tr>`;
+    document.getElementById("rulesCount").textContent = "加载失败";
+  }
+}
+
+loadEvents();
+loadRules();
+// 轮询日志（2秒）
+pollTimer = setInterval(loadEvents, 2000);
+
+// 页面卸载清理轮询
+window.addEventListener("beforeunload", () => { if (pollTimer) clearInterval(pollTimer); });
+</script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>履约结算Agent - 证据页</title>
+  <style>
+    :root { --bg: #f5f7fa; --panel: #fff; --border: #e1e4e8; --text: #24292e; --muted: #6a737d; --green: #28a745; --red: #d73a49; --yellow: #dbab09; --blue: #0366d6; --cyan: #1b9e9e; --violet: #6f42c1; --orange: #f0883e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; font-size: 13px; padding: 20px; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+    .cases { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .case-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .case-head { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .case-head.normal { background: linear-gradient(90deg, #dcfce7, #fff); }
+    .case-head.abnormal { background: linear-gradient(90deg, #fee2e2, #fff); }
+    .case-head .id { font-weight: 700; font-size: 13px; }
+    .case-head .label { font-size: 11px; color: var(--muted); }
+    .judgement-tag { padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .judgement-tag.正常放行 { background: var(--green); color: #fff; }
+    .judgement-tag.异常待确认 { background: var(--red); color: #fff; }
+    .case-body { padding: 12px 14px; }
+    .case-body .section { margin-bottom: 10px; }
+    .case-body .h { font-size: 11px; font-weight: 600; color: var(--violet); margin-bottom: 4px; }
+    .case-body .t { font-size: 12px; line-height: 1.5; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+    .metric { background: var(--bg); padding: 6px; border-radius: 4px; text-align: center; }
+    .metric .v { font-size: 14px; font-weight: 700; font-family: "SF Mono", Monaco, monospace; }
+    .metric .l { font-size: 10px; color: var(--muted); }
+    .metric.red .v { color: var(--red); }
+    .metric.green .v { color: var(--green); }
+    .footer { margin-top: 20px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    .loading { text-align: center; padding: 60px; color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>供应商履约结算Agent - 4样例验证证据页</h1>
+  <div class="sub">本地联动Agent POC · 7节点工作流 · 4个精选样例覆盖 A监督/B结算/C付款 + GLM研判</div>
+  <div id="content"><div class="loading">正在运行4个样例，请稍候...</div></div>
+  <div class="footer">
+    <b>边界说明：</b>本证据页用于展示本地Agent验证链路的4样例结论。当前未接入真实ERP/业财一体化/物流GPS；
+    付款放行、扣罚调整等高风险动作保留人工确认（HITL）。配置 GLM_API_KEY 后研判节点真实调用GLM，否则降级规则研判（标注 decisionEngine=rule-fallback）。
+  </div>
+
+<script>
+const CASES = [
+  { case: "normal", label: "正常履约" },
+  { case: "delayed", label: "延误供货" },
+  { case: "penalty", label: "质量扣罚" },
+  { case: "mismatch", label: "付款不一致" }
+];
+
+async function runAll() {
+  const results = [];
+  for (const c of CASES) {
+    try {
+      const r = await fetch(`/api/run-agent?case=${c.case}`, { method: "POST" });
+      const d = await r.json();
+      results.push({ ...c, data: d });
+    } catch (e) {
+      results.push({ ...c, error: e.message });
+    }
+  }
+  render(results);
+}
+
+function render(results) {
+  document.getElementById("content").innerHTML = `<div class="cases">${results.map(c => renderCase(c)).join("")}</div>`;
+}
+
+function renderCase(c) {
+  if (c.error) {
+    return `<div class="case-card"><div class="case-head abnormal"><div><div class="id">${c.label}</div><div class="label">运行失败</div></div></div><div class="case-body"><div class="t" style="color:var(--red)">${c.error}</div></div></div>`;
+  }
+  const r = c.data.result;
+  const o = c.data.order;
+  const dec = r.decision;
+  const isNormal = dec.overallJudgement === "正常放行";
+  const engineTag = r.decisionMeta?.decisionEngine === "glm" ? "GLM" : "规则降级";
+
+  return `
+    <div class="case-card">
+      <div class="case-head ${isNormal ? "normal" : "abnormal"}">
+        <div>
+          <div class="id">${c.label} · ${o.orderId}</div>
+          <div class="label">${o.supplierName} · ${o.materialName} · ${o.plant}</div>
+        </div>
+        <div>
+          <span class="judgement-tag ${dec.overallJudgement}">${dec.overallJudgement}</span>
+          <div class="label" style="text-align:right;margin-top:2px;">${engineTag} · 风险${dec.riskLevel}</div>
+        </div>
+      </div>
+      <div class="case-body">
+        <div class="metrics">
+          <div class="metric ${r.supervision.delayDays > 1 ? "red" : "green"}"><div class="v">${r.supervision.delayDays}</div><div class="l">延误天数</div></div>
+          <div class="metric ${r.supervision.alerts.length > 0 ? "red" : "green"}"><div class="v">${r.supervision.alerts.length}</div><div class="l">预警项</div></div>
+          <div class="metric ${r.settlement.totalPenalty > 0 ? "red" : "green"}"><div class="v">${r.settlement.totalPenalty.toFixed(0)}</div><div class="l">扣罚(元)</div></div>
+          <div class="metric ${r.paymentCheck.status === "一致" ? "green" : "red"}"><div class="v" style="font-size:11px;">${r.paymentCheck.status}</div><div class="l">付款核验</div></div>
+        </div>
+        <div class="section"><div class="h">💰 结算单</div><div class="t">合同 ${r.settlement.baseAmount} 元 − 扣罚 ${r.settlement.totalPenalty} 元 = <b>应付 ${r.settlement.payableAmount} 元</b></div></div>
+        <div class="section"><div class="h">🔍 异常说明</div><div class="t">${dec.anomalyExplanation}</div></div>
+        <div class="section"><div class="h">⚠ 处置建议</div><div class="t" style="background:#fffbeb;padding:5px 8px;border-radius:4px;border-left:3px solid var(--yellow);">${dec.actionSuggestion}</div></div>
+        <div class="section"><div class="h">📊 供应商评分回流</div><div class="t">${o.supplier?.historyScore ?? "?"} 分 → <b style="color:${r.ledger.supplierScoreDelta < 0 ? "var(--red)" : "var(--green)"}">${r.ledger.supplierScoreDelta > 0 ? "+" : ""}${r.ledger.supplierScoreDelta}</b> → ${r.ledger.newSupplierScore ?? "?"} 分</div></div>
+      </div>
+    </div>
+  `;
+}
+
+runAll();
+</script>
+</body>
+</html>

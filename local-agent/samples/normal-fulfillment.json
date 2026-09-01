@@ -1,0 +1,53 @@
+{
+  "orderId": "LS-PO-2401",
+  "plant": "龙山厂",
+  "supplierName": "龙山水泥有限公司",
+  "materialName": "P.O42.5水泥",
+  "materialCategory": "水泥",
+  "projectName": "龙山1号线技改",
+  "batchNo": "LS-CEM-2401",
+  "productionTime": "2026-07-08 08:00:00",
+  "status": "已放行",
+  "rootCauseCategory": null,
+  "contract": {
+    "contractNo": "HT-LS-2026-001",
+    "agreedDeliveryDate": "2026-06-12",
+    "agreedQuantity": 200.0,
+    "qualityStandard": "GB175-2023 通用硅酸盐水泥",
+    "unitPrice": 380.0,
+    "contractAmount": 76000.0,
+    "penaltyClause": "延误每日扣0.5%；质量不合格扣5-20%",
+    "paymentTerms": "到货验收合格后30天账期付款"
+  },
+  "logistics": {
+    "carrier": "龙山自有车队",
+    "gpsStatus": "在线",
+    "plannedArrival": "2026-06-12 14:00",
+    "actualArrival": "2026-06-12 13:40",
+    "delayDays": 0,
+    "logisticsStatus": "已签收"
+  },
+  "inspection": {
+    "receivedWeight": 199.6,
+    "inboundNo": "RK-LS-2401",
+    "inspectionResult": "合格",
+    "qualityScore": 92.0,
+    "penaltySlip": "",
+    "deviationPct": -0.2
+  },
+  "invoice": {
+    "invoiceNo": "FP-LS-2401",
+    "invoiceAmount": 76000.0,
+    "taxRate": 0.13,
+    "paymentRequestAmount": 76000.0,
+    "actualPaymentAmount": 76000.0,
+    "paymentStatus": "已付款"
+  },
+  "supplier": {
+    "qualification": "A级资质",
+    "capacity": "日产2000吨",
+    "historyScore": 88.0,
+    "riskRating": "低",
+    "frameworkPaymentDays": 30
+  }
+}

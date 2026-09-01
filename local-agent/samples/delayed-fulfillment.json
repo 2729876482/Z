@@ -1,0 +1,53 @@
+{
+  "orderId": "LS-PO-2402",
+  "plant": "龙山厂",
+  "supplierName": "龙山砂石供应站",
+  "materialName": "机制砂",
+  "materialCategory": "砂石",
+  "projectName": "龙山2号线技改",
+  "batchNo": "LS-SND-2402",
+  "productionTime": "2026-07-08 10:00:00",
+  "status": "已拦截",
+  "rootCauseCategory": "logistics_delay",
+  "contract": {
+    "contractNo": "HT-LS-2026-002",
+    "agreedDeliveryDate": "2026-06-15",
+    "agreedQuantity": 300.0,
+    "qualityStandard": "JGJ52-2024 普通混凝土用砂",
+    "unitPrice": 95.0,
+    "contractAmount": 28500.0,
+    "penaltyClause": "延误每日扣0.5%；超出3天严重延误扣罚",
+    "paymentTerms": "到货验收合格后30天账期付款"
+  },
+  "logistics": {
+    "carrier": "第三方物流",
+    "gpsStatus": "离线",
+    "plannedArrival": "2026-06-15 10:00",
+    "actualArrival": "2026-06-18 16:00",
+    "delayDays": 3,
+    "logisticsStatus": "滞留"
+  },
+  "inspection": {
+    "receivedWeight": 298.5,
+    "inboundNo": "RK-LS-2402",
+    "inspectionResult": "合格",
+    "qualityScore": 85.0,
+    "penaltySlip": "",
+    "deviationPct": -0.5
+  },
+  "invoice": {
+    "invoiceNo": "FP-LS-2402",
+    "invoiceAmount": 28500.0,
+    "taxRate": 0.13,
+    "paymentRequestAmount": 28500.0,
+    "actualPaymentAmount": null,
+    "paymentStatus": "待复核"
+  },
+  "supplier": {
+    "qualification": "B级资质",
+    "capacity": "日产1500吨",
+    "historyScore": 76.0,
+    "riskRating": "中",
+    "frameworkPaymentDays": 30
+  }
+}

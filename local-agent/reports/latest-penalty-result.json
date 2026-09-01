@@ -1,0 +1,300 @@
+{
+  "agentName": "供应商履约结算智能体_本地验证链路",
+  "version": "local-poc-1.0",
+  "boundary": "本地验证链路用于证明合同解析、A监督、B结算、C付款、GLM研判、分支和台账闭环；未接入真实ERP/业财一体化/物流GPS。",
+  "runMeta": {
+    "totalDurationMs": 1920,
+    "nodeCount": 8,
+    "simulateLatency": true
+  },
+  "inputSummary": {
+    "orderId": "JB-PO-2403",
+    "plant": "江北厂",
+    "supplierName": "江北建材外加剂厂",
+    "materialName": "聚羧酸减水剂",
+    "dataSources": [
+      "采购合同",
+      "采购订单",
+      "供应商档案",
+      "物流到货",
+      "入库质检",
+      "发票付款"
+    ]
+  },
+  "workflowTrace": [
+    {
+      "node": "输入节点",
+      "status": "completed",
+      "output": "订单JB-PO-2403与6类数据源已结构化（供应商=江北建材外加剂厂，物料=聚羧酸减水剂）",
+      "durationMs": 362
+    },
+    {
+      "node": "合同解析节点",
+      "status": "completed",
+      "output": "合同HT-JB-2026-003已解析为6节点目标行为流程，金额120000元",
+      "durationMs": 307
+    },
+    {
+      "node": "A采购过程监督节点",
+      "status": "completed",
+      "output": "订单JB-PO-2403触发1条预警，风险中",
+      "durationMs": 310
+    },
+    {
+      "node": "B结算单汇算节点",
+      "status": "completed",
+      "output": "结算单生成：合同120000元 − 扣罚12480元 = 应付107520元",
+      "durationMs": 262
+    },
+    {
+      "node": "C付款校验节点",
+      "status": "completed",
+      "output": "三方核验结果：一致（正常）",
+      "durationMs": 263
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "status": "completed",
+      "output": "异常待确认",
+      "engine": "rule-fallback",
+      "durationMs": 0
+    },
+    {
+      "node": "分支与HITL节点",
+      "status": "completed",
+      "output": "异常确认分支",
+      "durationMs": 201
+    },
+    {
+      "node": "台账归档节点",
+      "status": "completed",
+      "output": "可归档为POC验证报告样例",
+      "durationMs": 215
+    }
+  ],
+  "nodeTimings": [
+    {
+      "node": "输入节点",
+      "startedAt": 1788253169332,
+      "finishedAt": 1788253169694,
+      "durationMs": 362,
+      "output": "订单JB-PO-2403与6类数据源已结构化（供应商=江北建材外加剂厂，物料=聚羧酸减水剂）"
+    },
+    {
+      "node": "合同解析节点",
+      "startedAt": 1788253169694,
+      "finishedAt": 1788253170001,
+      "durationMs": 307,
+      "output": "合同HT-JB-2026-003已解析为6节点目标行为流程，金额120000元"
+    },
+    {
+      "node": "A采购过程监督节点",
+      "startedAt": 1788253170001,
+      "finishedAt": 1788253170311,
+      "durationMs": 310,
+      "output": "订单JB-PO-2403触发1条预警，风险中"
+    },
+    {
+      "node": "B结算单汇算节点",
+      "startedAt": 1788253170311,
+      "finishedAt": 1788253170573,
+      "durationMs": 262,
+      "output": "结算单生成：合同120000元 − 扣罚12480元 = 应付107520元"
+    },
+    {
+      "node": "C付款校验节点",
+      "startedAt": 1788253170573,
+      "finishedAt": 1788253170836,
+      "durationMs": 263,
+      "output": "三方核验结果：一致（正常）"
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "startedAt": 1788253170836,
+      "finishedAt": 1788253170836,
+      "durationMs": 0,
+      "output": "异常待确认"
+    },
+    {
+      "node": "分支与HITL节点",
+      "startedAt": 1788253170836,
+      "finishedAt": 1788253171037,
+      "durationMs": 201,
+      "output": "异常确认分支"
+    },
+    {
+      "node": "台账归档节点",
+      "startedAt": 1788253171037,
+      "finishedAt": 1788253171252,
+      "durationMs": 215,
+      "output": "可归档为POC验证报告样例"
+    }
+  ],
+  "contractParsed": {
+    "node": "合同解析节点",
+    "contractNo": "HT-JB-2026-003",
+    "extractedFields": {
+      "履约节点": "发货→到货→入库→质检→结算→付款",
+      "约定交期": "2026-06-18",
+      "约定数量": "50 吨",
+      "质量标准": "GB8076-2008 混凝土外加剂",
+      "单价": "2400 元/吨",
+      "合同金额": "120000 元",
+      "扣罚规则": "质量不合格扣5-20%；延误每日扣0.5%",
+      "付款条件": "到货验收合格后45天账期付款"
+    },
+    "targetFlow": [
+      {
+        "node": "发货",
+        "target": {
+          "deadline": "2026-06-18",
+          "responsible": "江北建材外加剂厂"
+        }
+      },
+      {
+        "node": "到货",
+        "target": {
+          "deadline": "2026-06-18",
+          "responsible": "物流",
+          "quantity": 50
+        }
+      },
+      {
+        "node": "入库",
+        "target": {
+          "responsible": "仓储",
+          "quantity": 50
+        }
+      },
+      {
+        "node": "质检",
+        "target": {
+          "standard": "GB8076-2008 混凝土外加剂",
+          "responsible": "质检",
+          "scoreLine": 80
+        }
+      },
+      {
+        "node": "结算",
+        "target": {
+          "unitPrice": 2400,
+          "quantity": 50,
+          "amount": 120000
+        }
+      },
+      {
+        "node": "付款",
+        "target": {
+          "amount": 120000,
+          "terms": "到货验收合格后45天账期付款"
+        }
+      }
+    ],
+    "summary": "合同HT-JB-2026-003已解析为6节点目标行为流程，金额120000元"
+  },
+  "supervision": {
+    "node": "A采购过程监督节点",
+    "delayDays": 0,
+    "logisticsSeverity": "正常",
+    "qualitySeverity": "严重不合格",
+    "progressRate": 83.3,
+    "inspectionPassRate": 0,
+    "alerts": [
+      {
+        "type": "质检不合格",
+        "level": "高",
+        "message": "入库单RK-JB-2403质检结果不合格，质量评分62分低于合格线80分",
+        "action": "触发质量扣罚（扣罚单据KF-JB-2403），通知供应商整改"
+      }
+    ],
+    "riskScore": 35,
+    "riskLevel": "中",
+    "summary": "订单JB-PO-2403触发1条预警，风险中"
+  },
+  "settlement": {
+    "node": "B结算单汇算节点",
+    "contractNo": "HT-JB-2026-003",
+    "unitPrice": 2400,
+    "quantity": 50,
+    "baseAmount": 120000,
+    "penaltyBreakdown": [
+      {
+        "type": "质量扣罚",
+        "amount": 12480,
+        "basis": "质检严重不合格，扣罚比例10.4%"
+      }
+    ],
+    "totalPenalty": 12480,
+    "payableAmount": 107520,
+    "summary": "结算单生成：合同120000元 − 扣罚12480元 = 应付107520元"
+  },
+  "paymentCheck": {
+    "node": "C付款校验节点",
+    "contractAmount": 120000,
+    "orderAmount": 120000,
+    "invoiceAmount": 120000,
+    "status": "一致",
+    "level": "正常",
+    "checks": [
+      "合同金额 120000 元",
+      "申请付款金额 120000 元，与合同偏差 0 元",
+      "发票金额 120000 元，与合同偏差 0 元",
+      "三方偏差均在容差0.01元以内，判为一致"
+    ],
+    "missingDocs": [],
+    "summary": "三方核验结果：一致（正常）"
+  },
+  "decision": {
+    "node": "GLM履约结算研判节点",
+    "overallJudgement": "异常待确认",
+    "riskLevel": "中",
+    "keyEvidence": [
+      "质检不合格：入库单RK-JB-2403质检结果不合格，质量评分62分低于合格线80分",
+      "结算单扣罚12480元，应付107520元",
+      "付款核验：一致（合同金额 120000 元；申请付款金额 120000 元，与合同偏差 0 元；发票金额 120000 元，与合同偏差 0 元；三方偏差均在容差0.01元以内，判为一致）"
+    ],
+    "anomalyExplanation": "识别到1项异常：质检严重不合格（评分62分）。供应商来料质量不达标，可能与原料批次波动或生产工艺偏差有关，需供应商整改并复核。",
+    "settlementDifference": "结算单扣罚12480元（质量扣罚12480元），应付金额107520元，较合同金额120000元减少12480元。",
+    "paymentComplianceReport": "付款资料三方一致，但履约环节存在异常，建议结合结算扣罚结果综合评估后再放行。",
+    "actionSuggestion": "建议进入人工确认：暂缓付款，核查异常原因；延误/质量扣罚按结算单执行；若复核后接受扣罚结果，授权放行扣罚后净额付款；若存在争议则转人工处理。",
+    "requireHumanConfirm": true
+  },
+  "decisionMeta": {
+    "decisionEngine": "rule-fallback",
+    "reason": "GLM_API_KEY 未配置，降级到规则研判",
+    "glmModel": null,
+    "glmApiBase": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    "latencyMs": 0,
+    "tokenUsage": null,
+    "rawResponse": null
+  },
+  "branch": {
+    "node": "分支与HITL节点",
+    "branch": "异常确认分支",
+    "nextAction": "进入人工确认，暂缓付款，核查异常并授权调整后再放行",
+    "humanInTheLoop": true,
+    "canAutoExecute": false,
+    "boundaryNote": "真实部署中，付款放行、扣罚调整、转人工等高风险动作必须保留人工确认或授权执行。"
+  },
+  "ledger": {
+    "node": "台账归档节点",
+    "orderId": "JB-PO-2403",
+    "plant": "江北厂",
+    "supplierName": "江北建材外加剂厂",
+    "materialName": "聚羧酸减水剂",
+    "projectName": "江北1号线技改",
+    "productionTime": "2026-07-08 12:00:00",
+    "contractAmount": 120000,
+    "penaltyAmount": 12480,
+    "payableAmount": 107520,
+    "paymentCheckStatus": "一致",
+    "supervisionConclusion": "物流正常，质检严重不合格，进度83.3%",
+    "settlementConclusion": "扣罚12480元，应付107520元",
+    "finalJudgement": "异常待确认",
+    "actionSuggestion": "建议进入人工确认：暂缓付款，核查异常原因；延误/质量扣罚按结算单执行；若复核后接受扣罚结果，授权放行扣罚后净额付款；若存在争议则转人工处理。",
+    "humanConfirmRequired": true,
+    "supplierScoreDelta": -8,
+    "newSupplierScore": 74,
+    "archiveStatus": "可归档为POC验证报告样例"
+  }
+}

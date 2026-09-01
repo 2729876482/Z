@@ -1,0 +1,53 @@
+{
+  "orderId": "JB-PO-2403",
+  "plant": "江北厂",
+  "supplierName": "江北建材外加剂厂",
+  "materialName": "聚羧酸减水剂",
+  "materialCategory": "外加剂",
+  "projectName": "江北1号线技改",
+  "batchNo": "JB-ADM-2403",
+  "productionTime": "2026-07-08 12:00:00",
+  "status": "待结算",
+  "rootCauseCategory": "quality_fail",
+  "contract": {
+    "contractNo": "HT-JB-2026-003",
+    "agreedDeliveryDate": "2026-06-18",
+    "agreedQuantity": 50.0,
+    "qualityStandard": "GB8076-2008 混凝土外加剂",
+    "unitPrice": 2400.0,
+    "contractAmount": 120000.0,
+    "penaltyClause": "质量不合格扣5-20%；延误每日扣0.5%",
+    "paymentTerms": "到货验收合格后45天账期付款"
+  },
+  "logistics": {
+    "carrier": "供应商自有车队",
+    "gpsStatus": "在线",
+    "plannedArrival": "2026-06-18 09:00",
+    "actualArrival": "2026-06-18 10:30",
+    "delayDays": 0,
+    "logisticsStatus": "已签收"
+  },
+  "inspection": {
+    "receivedWeight": 50.2,
+    "inboundNo": "RK-JB-2403",
+    "inspectionResult": "不合格",
+    "qualityScore": 62.0,
+    "penaltySlip": "KF-JB-2403",
+    "deviationPct": 0.4
+  },
+  "invoice": {
+    "invoiceNo": "FP-JB-2403",
+    "invoiceAmount": 120000.0,
+    "taxRate": 0.13,
+    "paymentRequestAmount": 120000.0,
+    "actualPaymentAmount": null,
+    "paymentStatus": "待复核"
+  },
+  "supplier": {
+    "qualification": "A级资质",
+    "capacity": "日产300吨",
+    "historyScore": 82.0,
+    "riskRating": "低",
+    "frameworkPaymentDays": 45
+  }
+}

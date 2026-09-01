@@ -1,0 +1,287 @@
+{
+  "agentName": "供应商履约结算智能体_本地验证链路",
+  "version": "local-poc-1.0",
+  "boundary": "本地验证链路用于证明合同解析、A监督、B结算、C付款、GLM研判、分支和台账闭环；未接入真实ERP/业财一体化/物流GPS。",
+  "runMeta": {
+    "totalDurationMs": 1911,
+    "nodeCount": 8,
+    "simulateLatency": true
+  },
+  "inputSummary": {
+    "orderId": "LS-PO-2401",
+    "plant": "龙山厂",
+    "supplierName": "龙山水泥有限公司",
+    "materialName": "P.O42.5水泥",
+    "dataSources": [
+      "采购合同",
+      "采购订单",
+      "供应商档案",
+      "物流到货",
+      "入库质检",
+      "发票付款"
+    ]
+  },
+  "workflowTrace": [
+    {
+      "node": "输入节点",
+      "status": "completed",
+      "output": "订单LS-PO-2401与6类数据源已结构化（供应商=龙山水泥有限公司，物料=P.O42.5水泥）",
+      "durationMs": 352
+    },
+    {
+      "node": "合同解析节点",
+      "status": "completed",
+      "output": "合同HT-LS-2026-001已解析为6节点目标行为流程，金额76000元",
+      "durationMs": 312
+    },
+    {
+      "node": "A采购过程监督节点",
+      "status": "completed",
+      "output": "订单LS-PO-2401履约正常，进度100%",
+      "durationMs": 310
+    },
+    {
+      "node": "B结算单汇算节点",
+      "status": "completed",
+      "output": "结算单生成：合同76000元 − 扣罚0元 = 应付76000元",
+      "durationMs": 262
+    },
+    {
+      "node": "C付款校验节点",
+      "status": "completed",
+      "output": "三方核验结果：一致（正常）",
+      "durationMs": 261
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "status": "completed",
+      "output": "正常放行",
+      "engine": "rule-fallback",
+      "durationMs": 0
+    },
+    {
+      "node": "分支与HITL节点",
+      "status": "completed",
+      "output": "正常放行分支",
+      "durationMs": 213
+    },
+    {
+      "node": "台账归档节点",
+      "status": "completed",
+      "output": "可归档为POC验证报告样例",
+      "durationMs": 201
+    }
+  ],
+  "nodeTimings": [
+    {
+      "node": "输入节点",
+      "startedAt": 1788253207846,
+      "finishedAt": 1788253208198,
+      "durationMs": 352,
+      "output": "订单LS-PO-2401与6类数据源已结构化（供应商=龙山水泥有限公司，物料=P.O42.5水泥）"
+    },
+    {
+      "node": "合同解析节点",
+      "startedAt": 1788253208198,
+      "finishedAt": 1788253208510,
+      "durationMs": 312,
+      "output": "合同HT-LS-2026-001已解析为6节点目标行为流程，金额76000元"
+    },
+    {
+      "node": "A采购过程监督节点",
+      "startedAt": 1788253208510,
+      "finishedAt": 1788253208820,
+      "durationMs": 310,
+      "output": "订单LS-PO-2401履约正常，进度100%"
+    },
+    {
+      "node": "B结算单汇算节点",
+      "startedAt": 1788253208820,
+      "finishedAt": 1788253209082,
+      "durationMs": 262,
+      "output": "结算单生成：合同76000元 − 扣罚0元 = 应付76000元"
+    },
+    {
+      "node": "C付款校验节点",
+      "startedAt": 1788253209082,
+      "finishedAt": 1788253209343,
+      "durationMs": 261,
+      "output": "三方核验结果：一致（正常）"
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "startedAt": 1788253209343,
+      "finishedAt": 1788253209343,
+      "durationMs": 0,
+      "output": "正常放行"
+    },
+    {
+      "node": "分支与HITL节点",
+      "startedAt": 1788253209343,
+      "finishedAt": 1788253209556,
+      "durationMs": 213,
+      "output": "正常放行分支"
+    },
+    {
+      "node": "台账归档节点",
+      "startedAt": 1788253209556,
+      "finishedAt": 1788253209757,
+      "durationMs": 201,
+      "output": "可归档为POC验证报告样例"
+    }
+  ],
+  "contractParsed": {
+    "node": "合同解析节点",
+    "contractNo": "HT-LS-2026-001",
+    "extractedFields": {
+      "履约节点": "发货→到货→入库→质检→结算→付款",
+      "约定交期": "2026-06-12",
+      "约定数量": "200 吨",
+      "质量标准": "GB175-2023 通用硅酸盐水泥",
+      "单价": "380 元/吨",
+      "合同金额": "76000 元",
+      "扣罚规则": "延误每日扣0.5%；质量不合格扣5-20%",
+      "付款条件": "到货验收合格后30天账期付款"
+    },
+    "targetFlow": [
+      {
+        "node": "发货",
+        "target": {
+          "deadline": "2026-06-12",
+          "responsible": "龙山水泥有限公司"
+        }
+      },
+      {
+        "node": "到货",
+        "target": {
+          "deadline": "2026-06-12",
+          "responsible": "物流",
+          "quantity": 200
+        }
+      },
+      {
+        "node": "入库",
+        "target": {
+          "responsible": "仓储",
+          "quantity": 200
+        }
+      },
+      {
+        "node": "质检",
+        "target": {
+          "standard": "GB175-2023 通用硅酸盐水泥",
+          "responsible": "质检",
+          "scoreLine": 80
+        }
+      },
+      {
+        "node": "结算",
+        "target": {
+          "unitPrice": 380,
+          "quantity": 200,
+          "amount": 76000
+        }
+      },
+      {
+        "node": "付款",
+        "target": {
+          "amount": 76000,
+          "terms": "到货验收合格后30天账期付款"
+        }
+      }
+    ],
+    "summary": "合同HT-LS-2026-001已解析为6节点目标行为流程，金额76000元"
+  },
+  "supervision": {
+    "node": "A采购过程监督节点",
+    "delayDays": 0,
+    "logisticsSeverity": "正常",
+    "qualitySeverity": "正常",
+    "progressRate": 100,
+    "inspectionPassRate": 100,
+    "alerts": [],
+    "riskScore": 0,
+    "riskLevel": "低",
+    "summary": "订单LS-PO-2401履约正常，进度100%"
+  },
+  "settlement": {
+    "node": "B结算单汇算节点",
+    "contractNo": "HT-LS-2026-001",
+    "unitPrice": 380,
+    "quantity": 200,
+    "baseAmount": 76000,
+    "penaltyBreakdown": [],
+    "totalPenalty": 0,
+    "payableAmount": 76000,
+    "summary": "结算单生成：合同76000元 − 扣罚0元 = 应付76000元"
+  },
+  "paymentCheck": {
+    "node": "C付款校验节点",
+    "contractAmount": 76000,
+    "orderAmount": 76000,
+    "invoiceAmount": 76000,
+    "status": "一致",
+    "level": "正常",
+    "checks": [
+      "合同金额 76000 元",
+      "申请付款金额 76000 元，与合同偏差 0 元",
+      "发票金额 76000 元，与合同偏差 0 元",
+      "三方偏差均在容差0.01元以内，判为一致"
+    ],
+    "missingDocs": [],
+    "summary": "三方核验结果：一致（正常）"
+  },
+  "decision": {
+    "node": "GLM履约结算研判节点",
+    "overallJudgement": "正常放行",
+    "riskLevel": "低",
+    "keyEvidence": [
+      "履约进度100%，无延误、无物流滞留、质检合格",
+      "结算单应付金额76000元，扣罚0元",
+      "付款三方核验一致，合同/订单/发票金额匹配"
+    ],
+    "anomalyExplanation": "未识别到履约异常，物流、质检、付款各环节均符合合同目标。",
+    "settlementDifference": "本次结算无差异，应付金额76000元等于合同金额扣减免罚后净额。",
+    "paymentComplianceReport": "付款资料完整且三方一致，建议按账期正常放行付款。",
+    "actionSuggestion": "建议财务复核后按合同账期放行付款，并将结算单、付款核验结果写入履约结算台账。",
+    "requireHumanConfirm": true
+  },
+  "decisionMeta": {
+    "decisionEngine": "rule-fallback",
+    "reason": "GLM_API_KEY 未配置，降级到规则研判",
+    "glmModel": null,
+    "glmApiBase": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    "latencyMs": 0,
+    "tokenUsage": null,
+    "rawResponse": null
+  },
+  "branch": {
+    "node": "分支与HITL节点",
+    "branch": "正常放行分支",
+    "nextAction": "财务复核后按账期放行付款，生成履约结算台账",
+    "humanInTheLoop": true,
+    "canAutoExecute": false,
+    "boundaryNote": "真实部署中，付款放行、扣罚调整、转人工等高风险动作必须保留人工确认或授权执行。"
+  },
+  "ledger": {
+    "node": "台账归档节点",
+    "orderId": "LS-PO-2401",
+    "plant": "龙山厂",
+    "supplierName": "龙山水泥有限公司",
+    "materialName": "P.O42.5水泥",
+    "projectName": "龙山1号线技改",
+    "productionTime": "2026-07-08 08:00:00",
+    "contractAmount": 76000,
+    "penaltyAmount": 0,
+    "payableAmount": 76000,
+    "paymentCheckStatus": "一致",
+    "supervisionConclusion": "物流正常，质检正常，进度100%",
+    "settlementConclusion": "扣罚0元，应付76000元",
+    "finalJudgement": "正常放行",
+    "actionSuggestion": "建议财务复核后按合同账期放行付款，并将结算单、付款核验结果写入履约结算台账。",
+    "humanConfirmRequired": true,
+    "supplierScoreDelta": 1,
+    "newSupplierScore": 89,
+    "archiveStatus": "可归档为POC验证报告样例"
+  }
+}

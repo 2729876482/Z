@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>龙山厂 - 供应商履约结算Agent驾驶舱</title>
+  <style>
+    :root {
+      --bg-dark: #f5f7fa;
+      --bg-panel: #ffffff;
+      --bg-card: #f0f2f5;
+      --border: #e1e4e8;
+      --text: #24292e;
+      --text-muted: #6a737d;
+      --green: #28a745;
+      --red: #d73a49;
+      --yellow: #dbab09;
+      --blue: #0366d6;
+      --cyan: #1b9e9e;
+      --orange: #f0883e;
+      --violet: #6f42c1;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; background: var(--bg-dark); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif; font-size: 13px; }
+    .app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* 顶部状态栏 */
+    .header { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 48px; background: var(--bg-panel); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .header-left { display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+    .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, var(--blue), var(--cyan)); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; }
+    .station-info { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-muted); }
+    .station-info span { display: flex; align-items: center; gap: 4px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .datetime { font-family: "SF Mono", Monaco, monospace; font-size: 14px; color: var(--cyan); }
+    .btn { padding: 7px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .btn:hover { background: #e6e9ed; }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-primary:hover { background: #0258b8; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 主内容区 */
+    .main { flex: 1; display: grid; grid-template-columns: 250px 1fr 290px; gap: 1px; background: var(--border); overflow: hidden; }
+    .panel { background: var(--bg-panel); display: flex; flex-direction: column; overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+    .panel-title { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+    .panel-body { flex: 1; padding: 12px; overflow-y: auto; }
+
+    /* 样例切换按钮组 */
+    .case-tabs { display: flex; gap: 6px; }
+    .case-tab { padding: 5px 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-panel); font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .case-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .case-tab:hover:not(.active) { background: #e6e9ed; }
+
+    /* LED指示灯 */
+    .led-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-dark); border-radius: 4px; margin-bottom: 6px; }
+    .led-row .label { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .led { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 4px currentColor; }
+    .led.green { background: var(--green); color: var(--green); }
+    .led.red { background: var(--red); color: var(--red); }
+    .led.yellow { background: var(--yellow); color: var(--yellow); }
+    .led.gray { background: #999; color: #999; box-shadow: none; }
+    .led-status { font-size: 11px; color: var(--text-muted); }
+
+    /* 供应商卡片 */
+    .supplier-card { background: var(--bg-card); border-radius: 6px; padding: 10px; margin-top: 12px; }
+    .supplier-card .name { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+    .supplier-card .row { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .score-badge { padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; }
+    .score-badge.low { background: #dcfce7; color: var(--green); }
+    .score-badge.mid { background: #fef3c7; color: var(--yellow); }
+    .score-badge.high { background: #fee2e2; color: var(--red); }
+
+    /* 流程条 */
+    .flow-bar { display: flex; align-items: center; gap: 2px; padding: 10px 12px; background: var(--bg-card); border-bottom: 1px solid var(--border); overflow-x: auto; }
+    .flow-node { padding: 6px 10px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; font-size: 11px; white-space: nowrap; color: var(--text-muted); transition: all 0.2s; }
+    .flow-node.done { background: var(--blue); color: #fff; border-color: var(--blue); }
+    .flow-arrow { color: var(--text-muted); font-size: 10px; }
+    .flow-node.current { background: var(--orange); color: #fff; border-color: var(--orange); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    /* 三模块卡片 */
+    .modules { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; padding: 12px; }
+    .module-card { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .module-head { padding: 8px 12px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .module-head .tag { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; color: #fff; }
+    .tag.A { background: var(--blue); }
+    .tag.B { background: var(--violet); }
+    .tag.C { background: var(--cyan); }
+    .module-body { padding: 10px 12px; font-size: 12px; }
+    .module-body .line { padding: 3px 0; border-bottom: 1px dashed var(--border); }
+    .module-body .line:last-child { border-bottom: none; }
+    .metric-big { font-size: 20px; font-weight: 700; font-family: "SF Mono", Monaco, monospace; }
+    .metric-big.red { color: var(--red); }
+    .metric-big.green { color: var(--green); }
+    .metric-big.orange { color: var(--orange); }
+
+    /* 预警项 */
+    .alert-item { background: #fff5f5; border-left: 3px solid var(--red); padding: 6px 8px; margin-bottom: 5px; border-radius: 0 4px 4px 0; font-size: 11px; }
+    .alert-item.mid { background: #fffbeb; border-left-color: var(--yellow); }
+    .alert-item .type { font-weight: 600; color: var(--red); }
+    .alert-item.mid .type { color: var(--yellow); }
+    .alert-item .msg { color: var(--text-muted); margin-top: 2px; }
+
+    /* 结算单表格 */
+    .settle-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .settle-table td { padding: 4px 6px; border-bottom: 1px dashed var(--border); }
+    .settle-table td.r { text-align: right; font-family: "SF Mono", Monaco, monospace; }
+    .settle-table tr.total td { font-weight: 700; border-top: 1px solid var(--border); border-bottom: none; padding-top: 6px; }
+
+    /* 付款校验状态 */
+    .pay-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .pay-status.一致 { background: #dcfce7; color: var(--green); }
+    .pay-status.不一致 { background: #fee2e2; color: var(--red); }
+    .pay-status.缺依据 { background: #fef3c7; color: var(--yellow); }
+    .pay-status.需人工复核 { background: #fef3c7; color: var(--orange); }
+
+    /* 右栏：Agent链路 + GLM研判 */
+    .trace-node { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+    .trace-node:last-child { border-bottom: none; }
+    .trace-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); margin-top: 3px; flex-shrink: 0; box-shadow: 0 0 3px var(--green); }
+    .trace-content { flex: 1; }
+    .trace-name { font-size: 12px; font-weight: 600; }
+    .trace-output { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .trace-duration { font-size: 10px; color: var(--cyan); }
+
+    .glm-box { background: linear-gradient(135deg, #f0f7ff, #f5f0ff); border: 1px solid #c8e1ff; border-radius: 6px; padding: 12px; margin-top: 10px; }
+    .glm-box .judgement { font-size: 16px; font-weight: 700; padding: 6px 10px; border-radius: 4px; margin-bottom: 8px; text-align: center; }
+    .judgement.正常放行 { background: #dcfce7; color: var(--green); }
+    .judgement.异常待确认 { background: #fee2e2; color: var(--red); }
+    .glm-section { margin-top: 8px; }
+    .glm-section .h { font-size: 11px; font-weight: 600; color: var(--violet); margin-bottom: 3px; }
+    .glm-section .t { font-size: 11px; color: var(--text); line-height: 1.5; }
+    .engine-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+    .engine-tag.glm { background: var(--violet); color: #fff; }
+    .engine-tag.fallback { background: var(--text-muted); color: #fff; }
+
+    /* HITL 操作区 */
+    .hitl-bar { padding: 10px 14px; background: var(--bg-card); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .hitl-status { font-size: 12px; }
+    .hitl-actions { display: flex; gap: 8px; }
+    .btn-release { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn-release:hover { background: #22863a; }
+    .btn-release:disabled { background: #a0a0a0; border-color: #a0a0a0; }
+    .btn-adjust { background: var(--orange); color: #fff; border-color: var(--orange); }
+    .btn-manual { background: var(--text-muted); color: #fff; border-color: var(--text-muted); }
+
+    /* 空状态 */
+    .empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 13px; }
+    .empty .icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
+
+    /* loading */
+    .loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.8); display: none; align-items: center; justify-content: center; z-index: 10; }
+    .loading-overlay.show { display: flex; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .central-wrap { position: relative; overflow-y: auto; }
+    .badge { padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 600; background: var(--bg-card); color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- 顶部 -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo"><div class="logo-icon">⚖</div>供应商履约结算Agent驾驶舱</div>
+      <div class="station-info">
+        <span>📍 龙山厂</span>
+        <span>🔧 POC本地联动</span>
+        <span id="dbStatus">🗄 SQLite: 检测中</span>
+        <span id="glmStatus">🤖 GLM: 未配置</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="case-tabs">
+        <div class="case-tab active" data-case="normal">正常履约</div>
+        <div class="case-tab" data-case="delayed">延误供货</div>
+        <div class="case-tab" data-case="penalty">质量扣罚</div>
+        <div class="case-tab" data-case="mismatch">付款不一致</div>
+      </div>
+      <div class="datetime" id="datetime">--:--:--</div>
+      <button class="btn btn-primary" id="runBtn">▶ 运行Agent</button>
+    </div>
+  </div>
+
+  <!-- 主体三栏 -->
+  <div class="main">
+    <!-- 左栏：数据源 + 供应商 -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">数据源 / 供应商档案</span></div>
+      <div class="panel-body">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600;">6路数据源状态</div>
+        <div id="dataSources">
+          <div class="led-row"><div class="label"><span class="led gray"></span>采购合同</div><span class="led-status">未加载</span></div>
+          <div class="led-row"><div class="label"><span class="led gray"></span>采购订单</div><span class="led-status">未加载</span></div>
+          <div class="led-row"><div class="label"><span class="led gray"></span>供应商档案</div><span class="led-status">未加载</span></div>
+          <div class="led-row"><div class="label"><span class="led gray"></span>物流到货</div><span class="led-status">未加载</span></div>
+          <div class="led-row"><div class="label"><span class="led gray"></span>入库质检</div><span class="led-status">未加载</span></div>
+          <div class="led-row"><div class="label"><span class="led gray"></span>发票付款</div><span class="led-status">未加载</span></div>
+        </div>
+        <div class="supplier-card" id="supplierCard" style="display:none;">
+          <div class="name" id="supName">-</div>
+          <div class="row"><span>资质</span><span id="supQual">-</span></div>
+          <div class="row"><span>产能</span><span id="supCap">-</span></div>
+          <div class="row"><span>历史评分</span><span id="supScore">-</span></div>
+          <div class="row"><span>风险评级</span><span id="supRisk">-</span></div>
+          <div class="row"><span>框架账期</span><span id="supDays">-</span></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:14px;line-height:1.6;">
+          <b>边界口径：</b>本地POC验证链路，未接入真实ERP/业财一体化/物流GPS。付款、扣罚等高风险动作保留人工确认。
+        </div>
+      </div>
+    </div>
+
+    <!-- 中央：流程条 + A/B/C 三模块 -->
+    <div class="central-wrap panel">
+      <div class="flow-bar" id="flowBar">
+        <div class="flow-node">输入</div><span class="flow-arrow">→</span>
+        <div class="flow-node">合同解析</div><span class="flow-arrow">→</span>
+        <div class="flow-node">A监督</div><span class="flow-arrow">→</span>
+        <div class="flow-node">B结算</div><span class="flow-arrow">→</span>
+        <div class="flow-node">C付款</div><span class="flow-arrow">→</span>
+        <div class="flow-node">GLM研判</div><span class="flow-arrow">→</span>
+        <div class="flow-node">HITL</div><span class="flow-arrow">→</span>
+        <div class="flow-node">台账归档</div>
+      </div>
+
+      <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+
+      <div id="centerContent">
+        <div class="empty">
+          <div class="icon">⚖</div>
+          <div>点击顶部"运行Agent"按钮启动履约结算研判链路</div>
+          <div style="font-size:11px;margin-top:6px;">默认展示"正常履约"样例，可切换其他3个异常场景</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右栏：Agent链路 + GLM研判 -->
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Agent链路运行轨迹</span></div>
+      <div class="panel-body" id="traceBody">
+        <div class="empty" style="padding:20px 10px;"><div style="font-size:12px;">运行后展示8节点轨迹</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部 HITL 操作栏 -->
+  <div class="hitl-bar" id="hitlBar" style="display:none;">
+    <div class="hitl-status" id="hitlStatus">-</div>
+    <div class="hitl-actions">
+      <button class="btn btn-adjust" id="adjustBtn" style="display:none;">授权扣罚调整</button>
+      <button class="btn btn-manual" id="manualBtn">转人工处理</button>
+      <button class="btn btn-release" id="releaseBtn" disabled>✓ 付款放行确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CASE_LABELS = { normal: "正常履约", delayed: "延误供货", penalty: "质量扣罚", mismatch: "付款不一致" };
+let currentCase = "normal";
+let currentResult = null;
+let currentOrder = null;
+
+// 时间
+function tick() { document.getElementById("datetime").textContent = new Date().toLocaleTimeString("zh-CN", { hour12: false }); }
+setInterval(tick, 1000); tick();
+
+// 切换样例
+document.querySelectorAll(".case-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".case-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentCase = tab.dataset.case;
+  });
+});
+
+// 运行按钮
+document.getElementById("runBtn").addEventListener("click", runAgent);
+document.getElementById("releaseBtn").addEventListener("click", () => hitlAction("release"));
+document.getElementById("adjustBtn").addEventListener("click", () => hitlAction("adjust_penalty"));
+document.getElementById("manualBtn").addEventListener("click", () => hitlAction("manual"));
+
+async function runAgent() {
+  const btn = document.getElementById("runBtn");
+  btn.disabled = true; btn.textContent = "运行中...";
+  document.getElementById("loading").classList.add("show");
+
+  // 重置流程条
+  document.querySelectorAll(".flow-node").forEach(n => n.classList.remove("done", "current"));
+
+  try {
+    const resp = await fetch(`/api/run-agent?case=${currentCase}`, { method: "POST" });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || "运行失败");
+    currentResult = data.result;
+    currentOrder = data.order;
+    renderAll(data);
+  } catch (e) {
+    document.getElementById("centerContent").innerHTML = `<div class="empty"><div class="icon">⚠</div><div>运行失败: ${e.message}</div></div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "▶ 运行Agent";
+    document.getElementById("loading").classList.remove("show");
+  }
+}
+
+function renderAll(data) {
+  renderHeader(data);
+  renderDataSources(data.result);
+  renderSupplier(data.order);
+  renderFlow(data.result.workflowTrace);
+  renderCenter(data.result);
+  renderTrace(data.result);
+  renderHitl(data.result);
+}
+
+function renderHeader(data) {
+  const dbOk = data.dataSource === "sqlite";
+  document.getElementById("dbStatus").textContent = `🗄 SQLite: ${dbOk ? "已连接" : "降级JSON"}`;
+  document.getElementById("dbStatus").style.color = dbOk ? "var(--green)" : "var(--yellow)";
+  const glmConfigured = data.result.decisionMeta?.decisionEngine === "glm";
+  document.getElementById("glmStatus").textContent = `🤖 GLM: ${glmConfigured ? "已调用" : "规则降级"}`;
+  document.getElementById("glmStatus").style.color = glmConfigured ? "var(--violet)" : "var(--text-muted)";
+}
+
+function renderDataSources(result) {
+  const order = result.inputSummary;
+  const sources = ["采购合同", "采购订单", "供应商档案", "物流到货", "入库质检", "发票付款"];
+  const html = sources.map(s => `<div class="led-row"><div class="label"><span class="led green"></span>${s}</div><span class="led-status">已结构化</span></div>`).join("");
+  document.getElementById("dataSources").innerHTML = html;
+}
+
+function renderSupplier(order) {
+  const s = order.supplier;
+  const card = document.getElementById("supplierCard");
+  if (!s) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  document.getElementById("supName").textContent = order.supplierName;
+  document.getElementById("supQual").textContent = s.qualification;
+  document.getElementById("supCap").textContent = s.capacity;
+  document.getElementById("supScore").textContent = s.historyScore + " 分";
+  document.getElementById("supRisk").innerHTML = `<span class="score-badge ${s.riskRating === "低" ? "low" : s.riskRating === "中" ? "mid" : "high"}">${s.riskRating}</span>`;
+  document.getElementById("supDays").textContent = s.frameworkPaymentDays + " 天";
+}
+
+function renderFlow(trace) {
+  const nodes = document.querySelectorAll(".flow-node");
+  trace.forEach((t, i) => {
+    setTimeout(() => {
+      if (nodes[i]) {
+        nodes[i].classList.add("done");
+        if (i < trace.length - 1 && nodes[i + 1]) nodes[i + 1].classList.add("current");
+      }
+    }, i * 120);
+  });
+  setTimeout(() => {
+    const last = nodes[nodes.length - 1];
+    if (last) last.classList.remove("current");
+  }, trace.length * 120);
+}
+
+function renderCenter(result) {
+  const sup = result.supervision;
+  const stl = result.settlement;
+  const pay = result.paymentCheck;
+  const dec = result.decision;
+
+  const alertsHtml = sup.alerts.length === 0
+    ? `<div style="color:var(--green);font-size:12px;padding:8px;">✓ 无预警，履约正常</div>`
+    : sup.alerts.map(a => `<div class="alert-item ${a.level === "中" ? "mid" : ""}"><div class="type">[${a.level}] ${a.type}</div><div class="msg">${a.message}</div><div class="msg" style="color:var(--blue)">→ ${a.action}</div></div>`).join("");
+
+  const penaltyHtml = stl.penaltyBreakdown.length === 0
+    ? `<tr><td>无扣罚</td><td class="r">0.00</td></tr>`
+    : stl.penaltyBreakdown.map(p => `<tr><td>${p.type}<div style="font-size:10px;color:var(--text-muted)">${p.basis}</div></td><td class="r">${p.amount.toFixed(2)}</td></tr>`).join("");
+
+  const payChecksHtml = pay.checks.map(c => `<div class="line">${c}</div>`).join("");
+
+  document.getElementById("centerContent").innerHTML = `
+    <div class="modules">
+      <!-- A 采购过程监督 -->
+      <div class="module-card">
+        <div class="module-head"><div><span class="tag A">A</span> 采购过程监督</div><span class="badge">${sup.riskLevel}风险</span></div>
+        <div class="module-body">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <div><div style="font-size:10px;color:var(--text-muted)">履约进度</div><div class="metric-big ${sup.progressRate < 100 ? "orange" : "green"}">${sup.progressRate}%</div></div>
+            <div style="text-align:right;"><div style="font-size:10px;color:var(--text-muted)">延误天数</div><div class="metric-big ${sup.delayDays > 1 ? "red" : "green"}">${sup.delayDays}天</div></div>
+          </div>
+          <div class="line">物流状态：<b>${sup.logisticsSeverity}</b></div>
+          <div class="line">质检状态：<b>${sup.qualitySeverity}</b></div>
+          <div class="line">预警项：<b>${sup.alerts.length}</b> 条</div>
+          <div style="margin-top:8px;font-size:11px;font-weight:600;color:var(--red);${sup.alerts.length === 0 ? "display:none;" : ""}">预警工单</div>
+          <div style="margin-top:4px;">${alertsHtml}</div>
+        </div>
+      </div>
+
+      <!-- B 结算单汇算 -->
+      <div class="module-card">
+        <div class="module-head"><div><span class="tag B">B</span> 结算单汇算</div><span class="badge">${stl.contractNo}</span></div>
+        <div class="module-body">
+          <table class="settle-table">
+            <tr><td>合同金额</td><td class="r">${stl.baseAmount.toFixed(2)}</td></tr>
+            <tr><td>单价×数量</td><td class="r">${stl.unitPrice}×${stl.quantity}吨</td></tr>
+            ${penaltyHtml}
+            <tr class="total"><td>扣罚合计</td><td class="r" style="color:var(--red)">-${stl.totalPenalty.toFixed(2)}</td></tr>
+            <tr class="total"><td>应付金额</td><td class="r"><span class="metric-big ${stl.totalPenalty > 0 ? "orange" : "green"}" style="font-size:16px;">${stl.payableAmount.toFixed(2)}</span></td></tr>
+          </table>
+          <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">${stl.summary}</div>
+        </div>
+      </div>
+
+      <!-- C 付款校验 -->
+      <div class="module-card">
+        <div class="module-head"><div><span class="tag C">C</span> 付款晾晒校验</div><span class="pay-status ${pay.status}">${pay.status}</span></div>
+        <div class="module-body">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <div><div style="font-size:10px;color:var(--text-muted)">合同/订单/发票</div></div>
+          </div>
+          <div class="line">合同金额：<b>${pay.contractAmount?.toFixed(2)}</b> 元</div>
+          <div class="line">申请付款：<b>${pay.orderAmount?.toFixed(2)}</b> 元</div>
+          <div class="line">发票金额：<b>${pay.invoiceAmount?.toFixed(2)}</b> 元</div>
+          <div style="margin-top:8px;padding:6px;background:var(--bg-dark);border-radius:4px;font-size:11px;">${payChecksHtml}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GLM 研判结论 -->
+    <div style="padding:0 12px 12px;">
+      <div class="glm-box">
+        <div class="judgement ${dec.overallJudgement}">${dec.overallJudgement} · 风险${dec.riskLevel}
+          <span class="engine-tag ${result.decisionMeta.decisionEngine === "glm" ? "glm" : "fallback"}" style="margin-left:8px;">${result.decisionMeta.decisionEngine === "glm" ? "GLM" : "规则降级"}</span>
+        </div>
+        <div class="glm-section"><div class="h">🔍 异常原因说明</div><div class="t">${dec.anomalyExplanation}</div></div>
+        <div class="glm-section"><div class="h">💰 结算差异解释</div><div class="t">${dec.settlementDifference}</div></div>
+        <div class="glm-section"><div class="h">📋 付款合规报告</div><div class="t">${dec.paymentComplianceReport}</div></div>
+        <div class="glm-section"><div class="h">⚠ 处置建议</div><div class="t" style="background:#fffbeb;padding:6px;border-radius:4px;border-left:3px solid var(--yellow);">${dec.actionSuggestion}</div></div>
+        <div class="glm-section"><div class="h">✓ 关键证据</div><div class="t">${dec.keyEvidence.map(e => `• ${e}`).join("<br>")}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTrace(result) {
+  const nodes = result.workflowTrace;
+  const html = nodes.map(t => `
+    <div class="trace-node">
+      <div class="trace-dot"></div>
+      <div class="trace-content">
+        <div class="trace-name">${t.node}${t.engine ? ` <span class="engine-tag ${t.engine === "glm" ? "glm" : "fallback"}" style="margin-left:4px;">${t.engine === "glm" ? "GLM" : "规则"}</span>` : ""}</div>
+        <div class="trace-output">${t.output || "-"}</div>
+        <div class="trace-duration">⏱ ${t.durationMs}ms</div>
+      </div>
+    </div>
+  `).join("") + `
+    <div style="margin-top:10px;padding:8px;background:var(--bg-card);border-radius:4px;font-size:11px;">
+      <div style="font-weight:600;margin-bottom:4px;">台账归档</div>
+      <div>供应商评分回流：<b style="color:${result.ledger.supplierScoreDelta < 0 ? "var(--red)" : "var(--green)"}">${result.ledger.supplierScoreDelta > 0 ? "+" : ""}${result.ledger.supplierScoreDelta}</b> 分 → 调整后 ${result.ledger.newSupplierScore ?? "?"} 分</div>
+      <div style="margin-top:3px;color:var(--text-muted);">总耗时：${result.runMeta.totalDurationMs}ms</div>
+    </div>
+  `;
+  document.getElementById("traceBody").innerHTML = html;
+}
+
+function renderHitl(result) {
+  const bar = document.getElementById("hitlBar");
+  const dec = result.decision;
+  const isNormal = dec.overallJudgement === "正常放行";
+  bar.style.display = "flex";
+
+  document.getElementById("hitlStatus").innerHTML = `
+    <b>${currentOrder?.orderId}</b> · ${currentOrder?.supplierName} ·
+    判定：<b style="color:${isNormal ? "var(--green)" : "var(--red)"}">${dec.overallJudgement}</b> ·
+    应付 <b>${result.settlement.payableAmount.toFixed(2)}</b> 元
+  `;
+
+  const releaseBtn = document.getElementById("releaseBtn");
+  const adjustBtn = document.getElementById("adjustBtn");
+  // 异常订单必须先做扣罚调整或转人工后才能放行
+  if (isNormal) {
+    releaseBtn.disabled = false;
+    adjustBtn.style.display = "none";
+  } else {
+    releaseBtn.disabled = true;
+    adjustBtn.style.display = "inline-block";
+  }
+}
+
+async function hitlAction(actionType) {
+  if (!currentOrder) return;
+  const labels = { release: "付款放行确认", adjust_penalty: "授权扣罚调整", manual: "转人工处理" };
+  const remark = actionType === "release" ? "复核通过按账期付款" : actionType === "adjust_penalty" ? "授权按结算单扣罚后净额付款" : "存在争议转人工核查";
+
+  try {
+    const resp = await fetch("/api/hitl-action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: currentOrder.orderId, actionType, operator: "财务张工", remark })
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      const status = actionType === "release" ? "✓ 已付款放行" : actionType === "adjust_penalty" ? "✓ 扣罚已授权，可放行净额" : "✓ 已转人工处理";
+      document.getElementById("hitlStatus").innerHTML += `<br><span style="color:var(--green);font-size:11px;">${status}（操作人：财务张工）</span>`;
+      if (actionType === "adjust_penalty") {
+        document.getElementById("releaseBtn").disabled = false;
+      }
+      if (actionType === "release") {
+        document.getElementById("releaseBtn").disabled = true;
+        document.getElementById("releaseBtn").textContent = "✓ 已放行";
+      }
+    } else {
+      alert("操作失败: " + (data.error || "未知错误"));
+    }
+  } catch (e) {
+    alert("操作失败: " + e.message);
+  }
+}
+
+// 页面加载时检查健康状态
+fetch("/api/health").then(r => r.json()).then(d => {
+  if (d.database?.exists) {
+    document.getElementById("dbStatus").textContent = "🗄 SQLite: 已连接";
+    document.getElementById("dbStatus").style.color = "var(--green)";
+  }
+  if (d.glm?.configured) {
+    document.getElementById("glmStatus").textContent = `🤖 GLM: ${d.glm.model}`;
+    document.getElementById("glmStatus").style.color = "var(--violet)";
+  } else {
+    document.getElementById("glmStatus").textContent = "🤖 GLM: 规则降级";
+  }
+}).catch(() => {});
+</script>
+</body>
+</html>

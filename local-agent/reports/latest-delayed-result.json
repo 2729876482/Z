@@ -1,0 +1,307 @@
+{
+  "agentName": "供应商履约结算智能体_本地验证链路",
+  "version": "local-poc-1.0",
+  "boundary": "本地验证链路用于证明合同解析、A监督、B结算、C付款、GLM研判、分支和台账闭环；未接入真实ERP/业财一体化/物流GPS。",
+  "runMeta": {
+    "totalDurationMs": 1917,
+    "nodeCount": 8,
+    "simulateLatency": true
+  },
+  "inputSummary": {
+    "orderId": "LS-PO-2402",
+    "plant": "龙山厂",
+    "supplierName": "龙山砂石供应站",
+    "materialName": "机制砂",
+    "dataSources": [
+      "采购合同",
+      "采购订单",
+      "供应商档案",
+      "物流到货",
+      "入库质检",
+      "发票付款"
+    ]
+  },
+  "workflowTrace": [
+    {
+      "node": "输入节点",
+      "status": "completed",
+      "output": "订单LS-PO-2402与6类数据源已结构化（供应商=龙山砂石供应站，物料=机制砂）",
+      "durationMs": 363
+    },
+    {
+      "node": "合同解析节点",
+      "status": "completed",
+      "output": "合同HT-LS-2026-002已解析为6节点目标行为流程，金额28500元",
+      "durationMs": 310
+    },
+    {
+      "node": "A采购过程监督节点",
+      "status": "completed",
+      "output": "订单LS-PO-2402触发2条预警，风险高",
+      "durationMs": 311
+    },
+    {
+      "node": "B结算单汇算节点",
+      "status": "completed",
+      "output": "结算单生成：合同28500元 − 扣罚427.5元 = 应付28072.5元",
+      "durationMs": 265
+    },
+    {
+      "node": "C付款校验节点",
+      "status": "completed",
+      "output": "三方核验结果：一致（正常）",
+      "durationMs": 263
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "status": "completed",
+      "output": "异常待确认",
+      "engine": "rule-fallback",
+      "durationMs": 1
+    },
+    {
+      "node": "分支与HITL节点",
+      "status": "completed",
+      "output": "异常确认分支",
+      "durationMs": 203
+    },
+    {
+      "node": "台账归档节点",
+      "status": "completed",
+      "output": "可归档为POC验证报告样例",
+      "durationMs": 201
+    }
+  ],
+  "nodeTimings": [
+    {
+      "node": "输入节点",
+      "startedAt": 1788253218757,
+      "finishedAt": 1788253219120,
+      "durationMs": 363,
+      "output": "订单LS-PO-2402与6类数据源已结构化（供应商=龙山砂石供应站，物料=机制砂）"
+    },
+    {
+      "node": "合同解析节点",
+      "startedAt": 1788253219120,
+      "finishedAt": 1788253219430,
+      "durationMs": 310,
+      "output": "合同HT-LS-2026-002已解析为6节点目标行为流程，金额28500元"
+    },
+    {
+      "node": "A采购过程监督节点",
+      "startedAt": 1788253219430,
+      "finishedAt": 1788253219741,
+      "durationMs": 311,
+      "output": "订单LS-PO-2402触发2条预警，风险高"
+    },
+    {
+      "node": "B结算单汇算节点",
+      "startedAt": 1788253219741,
+      "finishedAt": 1788253220006,
+      "durationMs": 265,
+      "output": "结算单生成：合同28500元 − 扣罚427.5元 = 应付28072.5元"
+    },
+    {
+      "node": "C付款校验节点",
+      "startedAt": 1788253220006,
+      "finishedAt": 1788253220269,
+      "durationMs": 263,
+      "output": "三方核验结果：一致（正常）"
+    },
+    {
+      "node": "GLM履约结算研判节点",
+      "startedAt": 1788253220269,
+      "finishedAt": 1788253220270,
+      "durationMs": 1,
+      "output": "异常待确认"
+    },
+    {
+      "node": "分支与HITL节点",
+      "startedAt": 1788253220270,
+      "finishedAt": 1788253220473,
+      "durationMs": 203,
+      "output": "异常确认分支"
+    },
+    {
+      "node": "台账归档节点",
+      "startedAt": 1788253220473,
+      "finishedAt": 1788253220674,
+      "durationMs": 201,
+      "output": "可归档为POC验证报告样例"
+    }
+  ],
+  "contractParsed": {
+    "node": "合同解析节点",
+    "contractNo": "HT-LS-2026-002",
+    "extractedFields": {
+      "履约节点": "发货→到货→入库→质检→结算→付款",
+      "约定交期": "2026-06-15",
+      "约定数量": "300 吨",
+      "质量标准": "JGJ52-2024 普通混凝土用砂",
+      "单价": "95 元/吨",
+      "合同金额": "28500 元",
+      "扣罚规则": "延误每日扣0.5%；超出3天严重延误扣罚",
+      "付款条件": "到货验收合格后30天账期付款"
+    },
+    "targetFlow": [
+      {
+        "node": "发货",
+        "target": {
+          "deadline": "2026-06-15",
+          "responsible": "龙山砂石供应站"
+        }
+      },
+      {
+        "node": "到货",
+        "target": {
+          "deadline": "2026-06-15",
+          "responsible": "物流",
+          "quantity": 300
+        }
+      },
+      {
+        "node": "入库",
+        "target": {
+          "responsible": "仓储",
+          "quantity": 300
+        }
+      },
+      {
+        "node": "质检",
+        "target": {
+          "standard": "JGJ52-2024 普通混凝土用砂",
+          "responsible": "质检",
+          "scoreLine": 80
+        }
+      },
+      {
+        "node": "结算",
+        "target": {
+          "unitPrice": 95,
+          "quantity": 300,
+          "amount": 28500
+        }
+      },
+      {
+        "node": "付款",
+        "target": {
+          "amount": 28500,
+          "terms": "到货验收合格后30天账期付款"
+        }
+      }
+    ],
+    "summary": "合同HT-LS-2026-002已解析为6节点目标行为流程，金额28500元"
+  },
+  "supervision": {
+    "node": "A采购过程监督节点",
+    "delayDays": 3,
+    "logisticsSeverity": "轻度延误",
+    "qualitySeverity": "正常",
+    "progressRate": 83.3,
+    "inspectionPassRate": 100,
+    "alerts": [
+      {
+        "type": "轻度延误",
+        "level": "中",
+        "message": "订单LS-PO-2402物流延误3天，超出轻度延误阈值1天",
+        "action": "提示采购跟进，记录延误"
+      },
+      {
+        "type": "物流滞留",
+        "level": "高",
+        "message": "承运商第三方物流 GPS状态离线，物流状态滞留，存在滞留风险",
+        "action": "核实物流实际情况，必要时启用备选运力"
+      }
+    ],
+    "riskScore": 53,
+    "riskLevel": "高",
+    "summary": "订单LS-PO-2402触发2条预警，风险高"
+  },
+  "settlement": {
+    "node": "B结算单汇算节点",
+    "contractNo": "HT-LS-2026-002",
+    "unitPrice": 95,
+    "quantity": 300,
+    "baseAmount": 28500,
+    "penaltyBreakdown": [
+      {
+        "type": "延误扣罚",
+        "amount": 427.5,
+        "basis": "延误3天 × 0.5%/天"
+      }
+    ],
+    "totalPenalty": 427.5,
+    "payableAmount": 28072.5,
+    "summary": "结算单生成：合同28500元 − 扣罚427.5元 = 应付28072.5元"
+  },
+  "paymentCheck": {
+    "node": "C付款校验节点",
+    "contractAmount": 28500,
+    "orderAmount": 28500,
+    "invoiceAmount": 28500,
+    "status": "一致",
+    "level": "正常",
+    "checks": [
+      "合同金额 28500 元",
+      "申请付款金额 28500 元，与合同偏差 0 元",
+      "发票金额 28500 元，与合同偏差 0 元",
+      "三方偏差均在容差0.01元以内，判为一致"
+    ],
+    "missingDocs": [],
+    "summary": "三方核验结果：一致（正常）"
+  },
+  "decision": {
+    "node": "GLM履约结算研判节点",
+    "overallJudgement": "异常待确认",
+    "riskLevel": "高",
+    "keyEvidence": [
+      "轻度延误：订单LS-PO-2402物流延误3天，超出轻度延误阈值1天",
+      "物流滞留：承运商第三方物流 GPS状态离线，物流状态滞留，存在滞留风险",
+      "结算单扣罚427.5元，应付28072.5元",
+      "付款核验：一致（合同金额 28500 元；申请付款金额 28500 元，与合同偏差 0 元；发票金额 28500 元，与合同偏差 0 元；三方偏差均在容差0.01元以内，判为一致）"
+    ],
+    "anomalyExplanation": "识别到1项异常：物流轻度延误（延误3天）。物流调度异常或承运商履约能力不足导致供货延误，需核查承运商资质与运输计划。",
+    "settlementDifference": "结算单扣罚427.5元（延误扣罚427.5元），应付金额28072.5元，较合同金额28500元减少427.5元。",
+    "paymentComplianceReport": "付款资料三方一致，但履约环节存在异常，建议结合结算扣罚结果综合评估后再放行。",
+    "actionSuggestion": "建议进入人工确认：暂缓付款，核查异常原因；延误/质量扣罚按结算单执行；若复核后接受扣罚结果，授权放行扣罚后净额付款；若存在争议则转人工处理。",
+    "requireHumanConfirm": true
+  },
+  "decisionMeta": {
+    "decisionEngine": "rule-fallback",
+    "reason": "GLM_API_KEY 未配置，降级到规则研判",
+    "glmModel": null,
+    "glmApiBase": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+    "latencyMs": 1,
+    "tokenUsage": null,
+    "rawResponse": null
+  },
+  "branch": {
+    "node": "分支与HITL节点",
+    "branch": "异常确认分支",
+    "nextAction": "进入人工确认，暂缓付款，核查异常并授权调整后再放行",
+    "humanInTheLoop": true,
+    "canAutoExecute": false,
+    "boundaryNote": "真实部署中，付款放行、扣罚调整、转人工等高风险动作必须保留人工确认或授权执行。"
+  },
+  "ledger": {
+    "node": "台账归档节点",
+    "orderId": "LS-PO-2402",
+    "plant": "龙山厂",
+    "supplierName": "龙山砂石供应站",
+    "materialName": "机制砂",
+    "projectName": "龙山2号线技改",
+    "productionTime": "2026-07-08 10:00:00",
+    "contractAmount": 28500,
+    "penaltyAmount": 427.5,
+    "payableAmount": 28072.5,
+    "paymentCheckStatus": "一致",
+    "supervisionConclusion": "物流轻度延误，质检正常，进度83.3%",
+    "settlementConclusion": "扣罚427.5元，应付28072.5元",
+    "finalJudgement": "异常待确认",
+    "actionSuggestion": "建议进入人工确认：暂缓付款，核查异常原因；延误/质量扣罚按结算单执行；若复核后接受扣罚结果，授权放行扣罚后净额付款；若存在争议则转人工处理。",
+    "humanConfirmRequired": true,
+    "supplierScoreDelta": -2,
+    "newSupplierScore": 74,
+    "archiveStatus": "可归档为POC验证报告样例"
+  }
+}
